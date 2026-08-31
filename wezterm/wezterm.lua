@@ -148,6 +148,17 @@ config.keys = {
         mods = "CMD",
         action = action.ResetFontSize,
     },
+
+    {
+    key = "LeftArrow",
+    mods = "OPT",
+    action = wezterm.action.SendString("\x1bb"),
+},
+{
+    key = "RightArrow",
+    mods = "OPT",
+    action = wezterm.action.SendString("\x1bf"),
+},
 }
 
 wezterm.on("gui-startup", function(cmd)
