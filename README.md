@@ -9,7 +9,7 @@ My personal macOS terminal setup for development.
 - tmux — terminal workspace manager
 - tmux-resurrect — save and restore tmux sessions
 - tmux-continuum — automatically save tmux sessions
-- Starship — minimal shell prompt
+- Powerlevel10k — Zsh prompt theme
 
 ## Structure
 
@@ -19,8 +19,8 @@ dotfiles/
 │   └── wezterm.lua
 ├── tmux/
 │   └── tmux.conf
-├── starship/
-│   └── starship.toml
+├── p10k/
+│   └── p10k.zsh
 ├── shortcuts.md
 └── README.md
 ```

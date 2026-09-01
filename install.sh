@@ -37,7 +37,7 @@ fi
 
 echo "Installing required packages..."
 
-brew install tmux starship
+brew install tmux powerlevel10k
 
 # WezTerm is a GUI application, so install it as a cask.
 if ! brew list --cask wezterm >/dev/null 2>&1; then
@@ -82,18 +82,20 @@ fi
 "$HOME/.tmux/plugins/tpm/bin/install_plugins"
 
 # ------------------------------------------------------------
-# Starship
+# Powerlevel10k
 # ------------------------------------------------------------
 
 echo ""
-echo "Setting up Starship..."
+echo "Setting up Powerlevel10k..."
 
-mkdir -p "$HOME/.config"
+if ! brew list powerlevel10k >/dev/null 2>&1; then
+    brew install powerlevel10k
+else
+    echo "Powerlevel10k already installed."
+fi
 
-backup_if_exists "$HOME/.config/starship.toml"
-ln -sfn \
-    "$DOTFILES/starship/starship.toml" \
-    "$HOME/.config/starship.toml"
+backup_if_exists "$HOME/.p10k.zsh"
+ln -sfn "$DOTFILES/p10k/p10k.zsh" "$HOME/.p10k.zsh"
 
 # ------------------------------------------------------------
 # zsh
@@ -102,15 +104,18 @@ ln -sfn \
 echo ""
 echo "Setting up zsh..."
 
-STARSHIP_LINE='eval "$(starship init zsh)"'
+if ! grep -Fq "powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" "$HOME/.zshrc" 2>/dev/null; then
+    cat >> "$HOME/.zshrc" <<'EOF'
 
-if ! grep -Fxq "$STARSHIP_LINE" "$HOME/.zshrc" 2>/dev/null; then
-    echo "" >> "$HOME/.zshrc"
-    echo "# Starship prompt" >> "$HOME/.zshrc"
-    echo "$STARSHIP_LINE" >> "$HOME/.zshrc"
-    echo "Added Starship to ~/.zshrc"
+# >>> dotfiles Powerlevel10k >>>
+source "$(brew --prefix)/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme"
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# <<< dotfiles Powerlevel10k <<<
+EOF
+
+    echo "Added Powerlevel10k to ~/.zshrc"
 else
-    echo "Starship already configured in ~/.zshrc"
+    echo "Powerlevel10k already configured in ~/.zshrc"
 fi
 
 # ------------------------------------------------------------
@@ -127,7 +132,7 @@ echo ""
 echo "Your configs:"
 echo "  WezTerm  -> ~/.wezterm.lua"
 echo "  tmux     -> ~/.tmux.conf"
-echo "  Starship -> ~/.config/starship.toml"
+echo "  Powerlevel10k -> ~/.p10k.zsh"
 echo ""
 echo "Start your work session with:"
 echo "  tmux new -s work"
