@@ -37,7 +37,9 @@ fi
 
 echo "Installing required packages..."
 
-brew install tmux powerlevel10k
+brew install tmux powerlevel10k fzf
+
+$(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc
 
 # WezTerm is a GUI application, so install it as a cask.
 if ! brew list --cask wezterm >/dev/null 2>&1; then
@@ -78,7 +80,6 @@ else
     echo "TPM already installed."
 fi
 
-# Install plugins declared in tmux.conf
 "$HOME/.tmux/plugins/tpm/bin/install_plugins"
 
 # ------------------------------------------------------------
@@ -87,12 +88,6 @@ fi
 
 echo ""
 echo "Setting up Powerlevel10k..."
-
-if ! brew list powerlevel10k >/dev/null 2>&1; then
-    brew install powerlevel10k
-else
-    echo "Powerlevel10k already installed."
-fi
 
 backup_if_exists "$HOME/.p10k.zsh"
 ln -sfn "$DOTFILES/p10k/p10k.zsh" "$HOME/.p10k.zsh"
@@ -103,6 +98,20 @@ ln -sfn "$DOTFILES/p10k/p10k.zsh" "$HOME/.p10k.zsh"
 
 echo ""
 echo "Setting up zsh..."
+
+if ! grep -Fq "dotfiles fzf" "$HOME/.zshrc" 2>/dev/null; then
+    cat >> "$HOME/.zshrc" <<'EOF'
+
+# >>> dotfiles fzf >>>
+source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
+source "$(brew --prefix)/opt/fzf/shell/completion.zsh"
+# <<< dotfiles fzf <<<
+EOF
+
+    echo "Added fzf to ~/.zshrc"
+else
+    echo "fzf already configured in ~/.zshrc"
+fi
 
 if ! grep -Fq "powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" "$HOME/.zshrc" 2>/dev/null; then
     cat >> "$HOME/.zshrc" <<'EOF'
@@ -130,9 +139,10 @@ echo ""
 echo "Restart WezTerm to apply everything."
 echo ""
 echo "Your configs:"
-echo "  WezTerm  -> ~/.wezterm.lua"
-echo "  tmux     -> ~/.tmux.conf"
+echo "  WezTerm      -> ~/.wezterm.lua"
+echo "  tmux         -> ~/.tmux.conf"
 echo "  Powerlevel10k -> ~/.p10k.zsh"
+echo "  fzf          -> shell integration in ~/.zshrc"
 echo ""
 echo "Start your work session with:"
 echo "  tmux new -s work"
