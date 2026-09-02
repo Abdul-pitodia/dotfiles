@@ -4,102 +4,20 @@ set -e
 
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 
-echo ""
-echo "======================================"
-echo "  macOS Developer Dotfiles"
-echo "======================================"
-echo ""
+echo "Installing dotfiles..."
 
-# ------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------
-
-backup_if_exists() {
-    local target="$1"
-
-    if [ -e "$target" ] && [ ! -L "$target" ]; then
-        local backup="${target}.backup.$(date +%Y%m%d-%H%M%S)"
-        echo "Backing up $target -> $backup"
-        mv "$target" "$backup"
-    fi
-}
-
-# ------------------------------------------------------------
 # Homebrew
-# ------------------------------------------------------------
-
 if ! command -v brew >/dev/null 2>&1; then
     echo "Homebrew is not installed."
-    echo "Install Homebrew first from:"
-    echo "https://brew.sh"
+    echo "Install it from https://brew.sh"
     exit 1
 fi
 
-echo "Installing required packages..."
+# Packages
+brew install tmux fzf
 
-brew install tmux powerlevel10k fzf
-
-$(brew --prefix)/opt/fzf/install --key-bindings --completion --no-update-rc
-
-# WezTerm is a GUI application, so install it as a cask.
-if ! brew list --cask wezterm >/dev/null 2>&1; then
-    brew install --cask wezterm
-fi
-
-# ------------------------------------------------------------
-# WezTerm
-# ------------------------------------------------------------
-
-echo ""
-echo "Setting up WezTerm..."
-
-backup_if_exists "$HOME/.wezterm.lua"
-ln -sfn "$DOTFILES/wezterm/wezterm.lua" "$HOME/.wezterm.lua"
-
-# ------------------------------------------------------------
-# tmux
-# ------------------------------------------------------------
-
-echo ""
-echo "Setting up tmux..."
-
-backup_if_exists "$HOME/.tmux.conf"
-ln -sfn "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
-
-# ------------------------------------------------------------
-# TPM
-# ------------------------------------------------------------
-
-echo ""
-echo "Setting up TPM..."
-
-if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-    git clone https://github.com/tmux-plugins/tpm \
-        "$HOME/.tmux/plugins/tpm"
-else
-    echo "TPM already installed."
-fi
-
-"$HOME/.tmux/plugins/tpm/bin/install_plugins"
-
-# ------------------------------------------------------------
-# Powerlevel10k
-# ------------------------------------------------------------
-
-echo ""
-echo "Setting up Powerlevel10k..."
-
-backup_if_exists "$HOME/.p10k.zsh"
-ln -sfn "$DOTFILES/p10k/p10k.zsh" "$HOME/.p10k.zsh"
-
-# ------------------------------------------------------------
-# zsh
-# ------------------------------------------------------------
-
-echo ""
-echo "Setting up zsh..."
-
-if ! grep -Fq "dotfiles fzf" "$HOME/.zshrc" 2>/dev/null; then
+# fzf shell integration
+if ! grep -Fq '# >>> dotfiles fzf >>>' "$HOME/.zshrc" 2>/dev/null; then
     cat >> "$HOME/.zshrc" <<'EOF'
 
 # >>> dotfiles fzf >>>
@@ -107,43 +25,27 @@ source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
 source "$(brew --prefix)/opt/fzf/shell/completion.zsh"
 # <<< dotfiles fzf <<<
 EOF
-
-    echo "Added fzf to ~/.zshrc"
-else
-    echo "fzf already configured in ~/.zshrc"
 fi
 
-if ! grep -Fq "powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme" "$HOME/.zshrc" 2>/dev/null; then
-    cat >> "$HOME/.zshrc" <<'EOF'
-
-# >>> dotfiles Powerlevel10k >>>
-source "$(brew --prefix)/opt/powerlevel10k/share/powerlevel10k/powerlevel10k.zsh-theme"
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-# <<< dotfiles Powerlevel10k <<<
-EOF
-
-    echo "Added Powerlevel10k to ~/.zshrc"
-else
-    echo "Powerlevel10k already configured in ~/.zshrc"
+# tmux config
+if [ -e "$HOME/.tmux.conf" ] && [ ! -L "$HOME/.tmux.conf" ]; then
+    mv "$HOME/.tmux.conf" "$HOME/.tmux.conf.backup.$(date +%Y%m%d-%H%M%S)"
 fi
 
-# ------------------------------------------------------------
-# Done
-# ------------------------------------------------------------
+ln -sfn "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
+
+# TPM
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    git clone https://github.com/tmux-plugins/tpm \
+        "$HOME/.tmux/plugins/tpm"
+fi
+
+# Install tmux plugins
+"$HOME/.tmux/plugins/tpm/bin/install_plugins"
 
 echo ""
-echo "======================================"
-echo "  Installation complete!"
-echo "======================================"
+echo "Done."
 echo ""
-echo "Restart WezTerm to apply everything."
-echo ""
-echo "Your configs:"
-echo "  WezTerm      -> ~/.wezterm.lua"
-echo "  tmux         -> ~/.tmux.conf"
-echo "  Powerlevel10k -> ~/.p10k.zsh"
-echo "  fzf          -> shell integration in ~/.zshrc"
-echo ""
-echo "Start your work session with:"
+echo "Restart your terminal, then start tmux with:"
 echo "  tmux new -s work"
 echo ""
